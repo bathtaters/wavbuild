@@ -1,7 +1,7 @@
 IDIR =../include
 CC=gcc
 CFLAGS=-I$(IDIR)
-OUTDIR=/usr/local/bin/
+OUTDIR=../
 
 ODIR=obj
 LDIR =../lib
