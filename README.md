@@ -1,6 +1,7 @@
 # wavbuild
 Audio File Sound Wave &amp; LTC Generator *(My first C program)*
 
+Makefile is under src
 
 ### Help page:
 ```Wav Build (Version 0.1) (c) 2018 by Nice Sound.
