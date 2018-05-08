@@ -1,4 +1,4 @@
 # wavbuild
-Audio File Sound Wave &amp; LTC Generator
+Audio File Sound Wave &amp; LTC Generator (My first C program)
 
-My first C program
+
