@@ -17,7 +17,6 @@ BUILD WAVE FILE UI Header
 #include <float.h>
 #include <unistd.h>
 #include <getopt.h>
-#include "timecode.h"
 #include "wav_build.h"
 
 // Frontend Constants

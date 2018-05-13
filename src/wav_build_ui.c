@@ -231,10 +231,10 @@ void printWaveData(WaveData * data) {
 		(data->volume < 0.0) ? " (Inverse)" : "");
 	printf("   Sample Rate: %d Hz\t", data->sampleRate);
 	if(data->generator != GEN_TIMECODE)
-		{ printf("Frequency: %.2f Hz\n", data->frequency); }
-	else
-		{ printf("LTC Start: %s\n", getTCstr(data->startTC)); }
-	printf("   Channel Count: %d channels\n", data->channels);
+		{ printf("Frequency: %.2f Hz\n   ", data->frequency); }
+	printf("Channel Count: %d channels\n", data->channels);
+	if(data->generator == GEN_TIMECODE)
+		{ printf("   LTC Start: %s\n", getTCstr(data->startTC)); }
 }
 
 

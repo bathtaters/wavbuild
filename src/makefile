@@ -8,10 +8,10 @@ LDIR =../lib
 
 LIBS=-lm
 
-_DEPS = wav_build_ui.h wav_build.h audio_generate.h ltc_generate.h timecode.h 
+_DEPS = wav_universal.h wav_build_ui.h wav_build.h audio_generators.h ltc_generator.h timecode.h 
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = wav_build_ui.o wav_build.o audio_generate.o ltc_generate.o timecode.o 
+_OBJ = wav_build_ui.o wav_build.o audio_generators.o ltc_generator.o timecode.o 
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 

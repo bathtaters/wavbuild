@@ -19,8 +19,8 @@ uint8_t * getTCarr(Timecode * tc) {
 	int convert[4] = TC_CONV_ARR(tc->frameRate);
 	if(tc->isDropFrame) {
 		if(tc->frameRate == 30) {
-			fcount += (DF29_DPM * (DF29_MSKIP - 1)) * (fcount / DF29_FPM10);
-			fcount += DF29_DPM * ((fcount % DF29_FPM10) / DF29_FPM);
+			fcount += (DF29_DPM * (DF29_MSKIP - 1)) * (fcount / DF29_FPM10) + 
+						DF29_DPM * ((fcount % DF29_FPM10) / DF29_FPM);
 		}
 		// else DF behavior is not defined
 	}
@@ -77,6 +77,13 @@ int setAsCurrentTime(Timecode * tc) {
 
 
 // USER-BIT FUNCTIONS
+int decAsHex(int num) {
+	// Output hexadecimal with same digits as decimal
+	char decStr[INT_MAX_DIGITS];
+	sprintf(decStr,"%d",num);
+	return (int)strtol(&decStr[0],NULL,16);
+}
+	
 
 int setUserBits(Timecode * tc, int ub0, int ub1, int ub2, int ub3) {
 	// Invalid number
@@ -103,9 +110,9 @@ int setAsCurrentDate(Timecode * tc) {
 	struct tm currtime = *localtime(&tvar);
 	
 	setUserBits(tc,
-		currtime.tm_mon + 1,
-		currtime.tm_mday,
-		(currtime.tm_year + 6) % 100,
+		decAsHex(currtime.tm_mon + 1),
+		decAsHex(currtime.tm_mday),
+		decAsHex((currtime.tm_year) % 100),
 		currtime.tm_isdst
 	);
 	tc->userBitsFmt = ub_date;

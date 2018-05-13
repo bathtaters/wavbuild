@@ -17,6 +17,7 @@ GENERIC TIMECODE Functions Header
 #define MAX_FRAMES(fps)  	( MAX_HRS * MIN_TO_SEC * MIN_TO_SEC * fps )
 #define MAX_SEC 		 	MAX_FRAMES(1)
 #define TC_STR_LEN 			40
+#define INT_MAX_DIGITS 		11
 
 // Drop Frame parameters
 // 30/29.97DF

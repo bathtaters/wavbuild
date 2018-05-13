@@ -7,10 +7,11 @@ BUILD WAVE FILE Header
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "timecode.h"
-#include "ltc_generate.h"
-#include "audio_generate.h"
-#define VERSION_STR "0.1"
+#include <limits.h>
+#include "wav_universal.h"
+#include "ltc_generator.h"
+#include "audio_generators.h"
+#define VERSION_STR "0.2"
 
 // Default options
 #define DEF_BITRATE 16
@@ -22,7 +23,11 @@ BUILD WAVE FILE Header
 #define DEF_VOL DB_TO_FLOAT(-6.0) // 0.0 - 1.0 (negative will invert)
 #define DEF_FREQ 1000 // Hz
 #define DEF_INVERT 0
+
+// Settings
 #define ENABLE_META 0
+#define UNSIGNED_CUTOFF 8 // Data-format becomes signed after...
+#define USE_DS64 0xFFFFFFFF
 
 // Validity Arrays
 #define BITRATE_LEN 4
@@ -35,15 +40,27 @@ BUILD WAVE FILE Header
 }
 
 // Chunk Entry Indexes
-#define WAVECOUNT ( 5 + 2 * ENABLE_META )
+#define WAVECOUNT ( 6 + 2 * ENABLE_META )
 enum Wave_Chunk {
 	ID_ENTRY   = 0,
 	SIZE_ENTRY = 1,
 	WAVE_ENTRY = 2,
-	BEXT_ENTRY = 3,
-	XML_ENTRY  = 4,
-	FMT_ENTRY  = (3 + (ENABLE_META ? 2 : 0)),
-	DATA_ENTRY = (4 + (ENABLE_META ? 2 : 0))
+	DS64_ENTRY = 3,
+	BEXT_ENTRY = 4,
+	XML_ENTRY  = 5,
+	FMT_ENTRY  = (4 + (ENABLE_META ? 2 : 0)),
+	DATA_ENTRY = (5 + (ENABLE_META ? 2 : 0))
+};
+#define DS64COUNT 10 // Total entries
+enum DS64_Chunk {
+	DS64_WAVE_SIZE    = 2,
+	DS64_WAVE_SIZE_H  = 3,
+	DS64_DATA_SIZE    = 4,
+	DS64_DATA_SIZE_H  = 5,
+	DS64_SAMP_COUNT   = 6,
+	DS64_SAMP_COUNT_H = 7,
+	DS64_TABLE_LEN    = 8,
+	DS64_TABLE_CHUNK  = 9
 };
 #define FMTCOUNT 8 // Total entries
 enum Format_Chunk {
@@ -63,32 +80,14 @@ enum AudioFormat {
 	PCM_FORMAT	= 0x01
 };
 
-typedef enum WaveGens {
-	GEN_SILENCE,
-	GEN_SINE,
-	GEN_TRIANGLE,
-	GEN_SAWTOOTH,
-	GEN_SQUARE,
-	GEN_TIMECODE,
-	GEN_HEADER
-} WaveGens;
-#define GEN_FIRST GEN_SILENCE
-#define GEN_LAST  GEN_HEADER
-#define GEN_NAMES_ARR {\
-	"Silence",\
-	"Sine Wave",\
-	"Triangle",\
-	"Sawtooth",\
-	"Square",\
-	"Timecode",\
-	"Header Only"\
-};
 
 // Chunk Constants
 
 // Parent Constants
 #define FILEID intStr("RIFF")
 #define WAVEID intStr("WAVE")
+// DS64 Constants
+#define DS64ID intStr("ds64")
 // Format Constants
 #define FMTID  intStr("fmt ")
 #define AUDIOFMT	PCM_FORMAT
@@ -107,6 +106,11 @@ typedef enum WaveGens {
 #define XBLANK ' '
 
 // Macro Functions
+#define U64_LO_INT(num) (uint32_t)( num       & 0xFFFFFFFF)
+#define U64_HI_INT(num) (uint32_t)((num >> 4) & 0xFFFFFFFF)
+#define SET_U64_ENTRIES(ofChunk, lowIndex, setValue) \
+	ofChunk.entry[lowIndex]   = getEntryV(4, U64_LO_INT(setValue));\
+	ofChunk.entry[lowIndex+1] = getEntryV(4, U64_HI_INT(setValue))
 #define MAX_BITS(b) ((1 << (b)) - 1) // b = b - 1 for signed
 #define CLIP(in,max) ((in) >= 0 ? ((in) > (max) ? (max) : (in)) : ((in) < -(max + 1) ? -(max + 1) : (in)))
 #define VOL_TO_VAL(v,b) CLIP((int)round(MAX_BITS(b - 1) * v), MAX_BITS(b - 1))
@@ -117,22 +121,29 @@ typedef enum WaveGens {
 typedef struct ChunkEntry ChunkEntry;
 
 typedef struct Chunk {
-	int entryCount;
-	ChunkEntry * entries;
+	int count;
+	ChunkEntry * entry;
 } Chunk;
 
 struct ChunkEntry {
 	uint8_t isChunk:1;
 	uint8_t byteCount:3;
 	union {
-		uint32_t num; 
+		uint32_t val; 
 		Chunk chunk;
-	} value;
+	};
 };
+
+typedef struct ChanData {
+	Generator generator;
+	GenSetting setting;
+	double volume;
+	double offset;
+} ChanData;
 
 typedef struct WaveFile {
 	Chunk hdr;
-	float ** data;
+	ChanData * chan;
 } WaveFile;
 
 typedef struct WaveData {
