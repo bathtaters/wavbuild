@@ -1,10 +1,10 @@
-IDIR =../include
+IDIR =./include
 CC=gcc
 CFLAGS=-I$(IDIR)
-OUTDIR=../
+OUTDIR=./
 
-ODIR=obj
-LDIR =../lib
+ODIR=src
+LDIR =./lib
 
 LIBS=-lm
 
