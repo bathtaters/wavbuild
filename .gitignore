@@ -1,0 +1,6 @@
+# Makefile Output
+/wavbuild
+*.o
+
+# Test audio
+/*.wav

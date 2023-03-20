@@ -5,6 +5,7 @@ GENERIC TIMECODE Functions Header
 #ifndef TIMECODE_H
 #define TIMECODE_H
 
+#include <stdint.h> 
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>

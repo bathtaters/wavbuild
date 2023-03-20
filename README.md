@@ -1,10 +1,12 @@
 # wavbuild
 Audio File Sound Wave &amp; LTC Generator *(My first C program)*
 
-Makefile is under src
+### Install
+Use make file provided in base dir (`make && make clean`)
 
-### Help page:
-```Wav Build (Version 0.1) (c) 2018 by Nice Sound.
+### Man Page
+```
+Wav Build (Version 0.1) (c) 2018 by Nice Sound.
 Usage: wavbuild -<option> <value> ... -o <file>
 
 Wav Build Options:
@@ -41,4 +43,5 @@ Timecode/User-Bits Format:
 	"ub"	Unspecified User-Bits only
 	"date"	User-bits are date
 	"str"	User-bits are ASCII text
-	"page"	User-bits are page/line```
+	"page"	User-bits are page/line
+```
