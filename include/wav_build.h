@@ -7,6 +7,7 @@ BUILD WAVE FILE Header
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <limits.h>
 #include "wav_universal.h"
 #include "ltc_generator.h"

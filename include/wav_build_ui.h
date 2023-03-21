@@ -15,6 +15,7 @@ BUILD WAVE FILE UI Header
 #include <ctype.h>
 #include <limits.h>
 #include <float.h>
+#include <string.h>
 #include <unistd.h>
 #include <getopt.h>
 #include "wav_build.h"
