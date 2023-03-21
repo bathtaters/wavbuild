@@ -4,14 +4,14 @@ Audio File Sound Wave &amp; LTC Generator *(My first C program)*
 ### Install
 Use make file provided in base dir (`make && make clean`)
 
-### Man Page
+### Help Page
 ```
 Wav Build (Version 0.1) (c) 2018 by Nice Sound.
 Usage: wavbuild -<option> <value> ... -o <file>
 
 Wav Build Options:
  -o	-out	Output file <filepath> [Default: "./out.wav"]
- -h	-help	Display list of commands
+ -h	-help	Display full list of commands
 
 Audio Options:
  -b	-br	Bit-rate <8|16|24|32> bits per sample [Default: 16-bit]
