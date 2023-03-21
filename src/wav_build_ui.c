@@ -181,14 +181,17 @@ void printUsage(void) {
 	printf("Usage: "WAV_BUILD_FILENAME" -<option> <value> ... -o <file>\n");
 }
 
-void printOptions(void) {
+void printOptions(int isFull) {
 	printUsage();
 	
 	printf("\nWav Build Options:\n");
 	printOpt("o","out","Output file <filepath>",0,"\""DEF_FILE"\"");
-	printOpt("h","help","Display list of commands",0,0);
+	printOpt("h","help","Display full list of commands",0,0);
+	printf("\n");
+
+	if (!isFull) { return; }
 	
-	printf("\nAudio Options:\n");
+	printf("Audio Options:\n");
 	printOpt("b","br","Bit-rate <8|16|24|32> bits per sample",DEF_BITRATE,"-bit");
 	printOpt("s","sr","Sample rate <11025-192k> Hz",DEF_SAMPRATE," Hz");
 	printOpt("d","dur","Duration <(hh:)mm:ss(.ms|:ff)> (Or append with <h|m|s|ms|f>)",DEF_SECS," secs");
@@ -786,7 +789,7 @@ WaveData * getWaveFromArgs(int argc, char **argv) {
 		putchar('\n');
 	}
 	
-	if(help || optind < 2) { printOptions(); return NULL; }
+	if(help || optind < 2) { printOptions(help); return NULL; }
 		
 	return data;
 }
