@@ -85,7 +85,7 @@ int setUserBits(Timecode * tc, int ub1, int ub2, int ub3, int ub4);
 int setUserBitsArr(Timecode * tc, int * ubArr);
 int setAsCurrentTime(Timecode * tc);
 int setAsCurrentDate(Timecode * tc);
-char * getTCstr(Timecode * tc);
+void printTC(Timecode * tc);
 Timecode * getTCdefault(void);
 
 #endif

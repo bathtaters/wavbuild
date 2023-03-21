@@ -17,6 +17,7 @@ uint8_t * getTCarr(Timecode * tc) {
 	uint8_t * outTC = malloc(4 * sizeof(uint8_t));
 	int fcount = tc->frames;
 	int convert[4] = TC_CONV_ARR(tc->frameRate);
+
 	if(tc->isDropFrame) {
 		if(tc->frameRate == 30) {
 			fcount += (DF29_DPM * (DF29_MSKIP - 1)) * (fcount / DF29_FPM10) + 
@@ -24,10 +25,12 @@ uint8_t * getTCarr(Timecode * tc) {
 		}
 		// else DF behavior is not defined
 	}
+
 	for(int t = 3; t >= 0; t--) {
 		outTC[t] = (uint8_t)(fcount % convert[t]);
 		fcount /= convert[t];
 	}
+
 	// if(fcount) dayCarry = TRUE;
 	return outTC;
 }
@@ -122,21 +125,19 @@ int setAsCurrentDate(Timecode * tc) {
 
 // TIMECODE Functions
 
-char * getTCstr(Timecode * tc) {
-	char * tstr = malloc(TC_STR_LEN * sizeof(char));
+void printTC(Timecode * tc) {
 	uint8_t *t = getTCarr(tc);
-	unsigned char *u = &tc->userBits[0];
+	unsigned char *u = tc->userBits;
 	
-	sprintf(tstr,
+	printf(
 		"%02d:%02d:%02d:%02d (%02X %02X %02X %02X) @ %.2f%s fps",
-		*t,*(t+1),*(t+2),*(t+3),
-		*u,*(u+1),*(u+2),*(u+3),
+		t[0],t[1],t[2],t[3],
+		u[0],u[1],u[2],u[3],
 		(float)tc->frameRate / (tc->isPullDown ? 1.001 : 1.0),
 		tc->isDropFrame ? "DF" : ""
 	);
-	
+
 	free(t);
-	return tstr;
 }
 
 Timecode * getTCdefault(void) {
