@@ -11,7 +11,7 @@ BUILD WAVE FILE Header
 #include "wav_universal.h"
 #include "ltc_generator.h"
 #include "audio_generators.h"
-#define VERSION_STR "0.2"
+#define VERSION_STR "0.3"
 
 // Default options
 #define DEF_BITRATE 16
