@@ -161,5 +161,6 @@ typedef struct WaveData {
 // Function Prototypes
 WaveData * getWaveDefault(void);
 int makeWave(WaveData * data);
+void freeWave(WaveData * data);
 
 #endif

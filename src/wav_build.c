@@ -67,7 +67,12 @@ uint64_t getChunkSize(Chunk chunk) {
 
 WaveData * getWaveDefault(void) {
 	WaveData * data = malloc(sizeof(WaveData));
-	data->fname = DEF_FILE;
+	if (!data) { return NULL; }
+
+	data->fname = malloc(sizeof(DEF_FILE) + sizeof(char));
+	if (!data->fname) { return NULL; }
+	strcpy(data->fname, DEF_FILE);
+
 	data->generator = DEF_GEN;
 	data->bitRate = DEF_BITRATE;
 	data->sampleRate = DEF_SAMPRATE;
@@ -76,6 +81,7 @@ WaveData * getWaveDefault(void) {
 	data->volume = DEF_VOL;
 	data->frequency = DEF_FREQ;
 	data->startTC = getTCdefault();
+	
 	return data;
 }
 
@@ -177,17 +183,6 @@ void freeChunk(Chunk chunk) {
 	if(chunk.entry) { 
 		free(chunk.entry);
 		chunk.entry = NULL;
-	}
-}
-
-void freeArr(float ** data, int count, int firstOnly) {
-	for(int e = 0; e < count; e++) {
-		if((!firstOnly || e == 0) && data[e]) { free(data[e]); }
-		data[e] = NULL;
-	}
-	if(data) {
-		free(data);
-		data = NULL;
 	}
 }
 
@@ -303,15 +298,23 @@ WaveFile getWaveFile(WaveData * data) { // MONO ONLY!
 	return wav;
 }
 
+void freeWaveFile(WaveFile file) {
+	freeChunk(file.hdr);
+	free(file.chan);
+}
+
 // MAIN FUNCTION
 // audioData = { {val of chan1 Samples}, {val of chan2 Samples}, ... }
 // val is float in range [-1.0, 1.0]
 int makeWave(WaveData * data) {		
 	WaveFile wav = getWaveFile(data);
 	int ret = saveWave(wav, data->fname);
-	
-	//freeChannels(wav.chan, data->channels);
-	freeChunk(wav.hdr);
-	
+	freeWaveFile(wav);
 	return ret;
+}
+
+void freeWave(WaveData * data) {
+	if (data->fname) { free(data->fname); }
+	if (data->startTC) { free(data->startTC); }
+	free(data);
 }
