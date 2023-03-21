@@ -1,6 +1,6 @@
 IDIR =./include
 CC=gcc
-CFLAGS=-I$(IDIR)
+CFLAGS=-I $(IDIR)
 OUTDIR=./
 
 ODIR=src
@@ -19,7 +19,7 @@ $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 $(OUTDIR)wavbuild: $(OBJ)
-	gcc -o $@ $^ $(CFLAGS) $(LIBS)
+	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
 .PHONY: clean
 

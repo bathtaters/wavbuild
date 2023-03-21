@@ -91,7 +91,7 @@ int invalidTC(Timecode * tc) {
 		}
 	}
 	
-	if(ret) { printf("ERROR: %s (%s)\n", err, getTCstr(tc)); }
+	if(ret) { printf("ERROR: %s (", err); printTC(tc); printf(")\n"); }
 	return ret;
 }
 
@@ -234,7 +234,7 @@ void printWaveData(WaveData * data) {
 		{ printf("Frequency: %.2f Hz\n   ", data->frequency); }
 	printf("Channel Count: %d channels\n", data->channels);
 	if(data->generator == GEN_TIMECODE)
-		{ printf("   LTC Start: %s\n", getTCstr(data->startTC)); }
+		{ printf("   LTC Start: "); printTC(data->startTC); printf("\n"); }
 }
 
 
@@ -347,10 +347,21 @@ int isValidPath(char * filepath) {
 	return 0;
 }
 
-char * appendExt(char * filepath) {
-	char * newPath = malloc((strlen(filepath) + 1) * sizeof(char) + sizeof(DEF_FILE_EXT));
-	sprintf(newPath,"%s%c%s",filepath,PATH_EXT,DEF_FILE_EXT);
-	return newPath;
+char * getPath(char *userpath, int appendExt) {
+	int size = (strlen(userpath) + 1) * sizeof(char);
+	if (appendExt) { size += sizeof(DEF_FILE_EXT) /* + sizeof(PATH_EXT) - sizeof('\0') */; }
+
+	char *filepath = malloc(size);
+	if (!filepath) { return NULL; }
+
+	if (appendExt) {
+	   sprintf(filepath,"%s%c%s",userpath,PATH_EXT,DEF_FILE_EXT);
+	}
+	else {
+	    strcpy(filepath, userpath);
+	}
+	
+	return filepath;
 }
 
 
@@ -404,10 +415,11 @@ double getDuration(char * lenStr, Timecode * tc) {
 	
 	double secs;
 	if(isArr) {
+		if(strlen(xchars) > 0) { return -1; } // ADD GET_TIME IF THIS FAILS
+
 		// Get array
 		int *lenArr = getIntArr(lenStr, 4, ".;:", (int)dec, 1);
-		if(!lenArr || strlen(xchars) > 0) { return -1; }
-		// ADD GET_TIME IF THIS FAILS
+		if(!lenArr) { return -1; }
 		
 		// Get seconds from array
 		/*  isArr+decimal values:
@@ -422,8 +434,11 @@ double getDuration(char * lenStr, Timecode * tc) {
 				(decimal ? SEC_TO_MS : MIN_TO_SEC), 0 // "frame" duration
 			) / (double)(decimal ? SEC_TO_MS : 1); // convert ms to s
 		}
-		else
-			{ secs = (double)getTCarrFrames(lenArr, tc->frameRate, 0); }
+		else {
+			secs = (double)getTCarrFrames(lenArr, tc->frameRate, 0);
+		}
+		
+		free(lenArr);
 		
 		if(secs < 0) { return secs; }
 		return secs;
@@ -520,7 +535,9 @@ int setWaveTimecode(char * TCstr, ByteFormat format, Timecode * tc) {
 	
 	// Get array
 	int *TCarr = getIntArr(TCstr, 4, ";:", (int)format, 1);
-	if(!TCarr || strlen(xchars) > 0) {
+	if(!TCarr) { return -1; }
+
+	if(strlen(xchars) > 0) {
 		// Get using audioLen format
 		double secs = getDuration(TCstr, tc);
 		f = (int)round(secs * tc->frameRate);
@@ -529,6 +546,9 @@ int setWaveTimecode(char * TCstr, ByteFormat format, Timecode * tc) {
 		// Set TC to array
 		f = getTCarrFrames(TCarr, tc->frameRate, tc->isDropFrame);
 	}
+
+	free(TCarr);
+
 	if(f < 0) { return f; } // Error
 	tc->frames = f;
 	return 0;
@@ -551,15 +571,22 @@ int setWaveUserBits(char * ubStr, ByteFormat format, Timecode * tc) {
 	if(count > 4) { format = chr; } // Read as String
 	
 	// Get integer arr
-	int *ub = malloc(4 * sizeof(int));
+	int *ub;
+
 	if(format != chr) {	
 		ub = getIntArr(ubStr, 4, " :;,/-_.", (int)format, 0);
-		if(ub && strlen(xchars) < 1) {
+		if(!ub) { return -1; }
+
+		if(strlen(xchars) < 1) {
 			setUserBitsArr(tc, ub);
 			free(ub);
 			return 0;
 		}
 		// WARNING
+	}
+	else {
+		ub = malloc(4 * sizeof(int));
+		if (!ub) { return -1; }
 	}
 	
 	// Get string, set first 4 chars
@@ -573,6 +600,7 @@ int setWaveUserBits(char * ubStr, ByteFormat format, Timecode * tc) {
 	
 	setUserBitsArr(tc, ub);
 	tc->userBitsFmt = ub_text;
+
 	free(ub);
 	return 0;
 }
@@ -620,9 +648,9 @@ WaveData * getWaveFromArgs(int argc, char **argv) {
 			case 'o':
 				temp = isValidPath(optarg);
 				if(temp) {
-					if(temp < 0) { optarg = appendExt(optarg); }
-					data->fname = malloc((strlen(optarg) + 1) * sizeof(char));
-					strcpy(data->fname, optarg);
+					free(data->fname);
+					data->fname = getPath(optarg, temp < 0);
+					if(!data->fname) { printf("Out of memory.\n"); return NULL; }
 				}
 				else { printf("'%s' is an invalid path.\n", optarg); }
 				break;
@@ -767,6 +795,11 @@ int main(int argc, char **argv) {
 	printf(WAV_BUILD_HEADER"\n");
 	WaveData * data = getWaveFromArgs(argc, argv);
 	int err = errorCheck(data);
-	if(!err) { printWaveData(data); }
-	return err ? err : makeWave(data);
+	if(err) { return err; }
+
+	printWaveData(data);
+	err = makeWave(data);
+
+	freeWave(data);
+	return err;
 }
